@@ -11,6 +11,9 @@ Route::get('/', function () {
 Route::post('/register', [AuthController::class, 'register'])
     ->name('auth.register');
 
+    Route::post('/verify-email', [AuthController::class, 'verifyEmail'])
+    ->name('auth.verify-email');
+
 Route::post('/login', [AuthController::class, 'login'])
     ->name('auth.login');
 

@@ -28,6 +28,24 @@ class AuthController extends Controller
         ], 201);
     }
 
+    public function verifyEmail(Request $request)
+{
+    $validated = $request->validate([
+        'email' => 'required|email',
+        'code' => 'required|digits:6',
+    ]);
+
+    $user = $this->authService->verifyEmail(
+        $validated['email'],
+        $validated['code']
+    );
+
+    return response()->json([
+        'message' => 'ایمیل شما با موفقیت تأیید شد.',
+        'user' => $user,
+    ]);
+}
+
     public function login(Request $request)
     {
         $validated = $request->validate([
