@@ -17,13 +17,15 @@ class AuthService
     public function login(array $credentials): User
     {
         $user = User::where('email', $credentials['email'])->first();
-
+    
         if (!$user || !Hash::check($credentials['password'], $user->password)) {
             throw ValidationException::withMessages([
                 'email' => ['اطلاعات ورود صحیح نیست.'],
             ]);
         }
-
+    
+        auth()->login($user);
+    
         return $user;
     }
 
