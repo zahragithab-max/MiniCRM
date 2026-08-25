@@ -46,6 +46,40 @@ class AuthController extends Controller
     ]);
 }
 
+public function forgotPassword(Request $request)
+{
+    $validated = $request->validate([
+        'email' => 'required|email',
+    ]);
+
+    $this->authService->forgotPassword(
+        $validated['email']
+    );
+
+    return response()->json([
+        'message' => 'لینک بازیابی رمز عبور به ایمیل شما ارسال شد.',
+    ]);
+}
+
+public function resetPassword(Request $request)
+{
+    $validated = $request->validate([
+        'email' => 'required|email',
+        'token' => 'required|string',
+        'password' => 'required|string|min:8|confirmed',
+    ]);
+
+    $this->authService->resetPassword(
+        $validated['email'],
+        $validated['token'],
+        $validated['password']
+    );
+
+    return response()->json([
+        'message' => 'رمز عبور با موفقیت تغییر کرد.',
+    ]);
+}
+
     public function login(Request $request)
     {
         $validated = $request->validate([
@@ -53,11 +87,12 @@ class AuthController extends Controller
             'password' => 'required|string',
         ]);
 
-        $user = $this->authService->login($validated);
+        $result = $this->authService->login($validated);
 
         return response()->json([
             'message' => 'ورود با موفقیت انجام شد.',
-            'user' => $user,
+            'user' => $result['user'],
+            'token' => $result['token'],
         ]);
     }
 
