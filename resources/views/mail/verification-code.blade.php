@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="fa" dir="rtl">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -12,8 +13,7 @@
         <tr>
             <td align="center">
 
-                <table width="600" cellpadding="0" cellspacing="0"
-                       style="max-width:600px; width:100%; background:#ffffff; border-radius:16px; overflow:hidden;">
+                <table width="600" cellpadding="0" cellspacing="0" style="max-width:600px; width:100%; background:#ffffff; border-radius:16px; overflow:hidden;">
 
                     <tr>
                         <td style="padding:30px; text-align:center; background:#111827; color:#ffffff;">
@@ -76,4 +76,5 @@
     </table>
 
 </body>
+
 </html>

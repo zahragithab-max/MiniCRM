@@ -1,9 +1,11 @@
 <!DOCTYPE html>
 <html lang="fa" dir="rtl">
+
 <head>
     <meta charset="UTF-8">
     <title>بازیابی رمز عبور</title>
 </head>
+
 <body>
     <h2>بازیابی رمز عبور MiniCRM</h2>
 
@@ -15,4 +17,5 @@
 
     <p>این کد را در اختیار دیگران قرار ندهید.</p>
 </body>
+
 </html>
