@@ -48,6 +48,23 @@ class AuthController extends Controller
     ]);
 }
 
+
+
+public function resendVerificationCode(Request $request)
+{
+    $validated = $request->validate([
+        'email' => 'required|email',
+    ]);
+
+    $this->authService->resendVerificationCode(
+        $validated['email']
+    );
+
+    return response()->json([
+        'message' => 'کد تأیید جدید به ایمیل شما ارسال شد.',
+    ]);
+}
+
 public function forgotPassword(Request $request)
 {
     $validated = $request->validate([

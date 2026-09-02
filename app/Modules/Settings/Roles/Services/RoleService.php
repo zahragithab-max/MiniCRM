@@ -37,4 +37,27 @@ class RoleService
 
         return $role->fresh('permissions');
     }
+
+    public function getRecordAccess(Role $role): Collection
+    {
+        return $role->recordAccesses()->get();
+    }
+
+    public function syncRecordAccess(
+        Role $role,
+        array $accesses
+    ): Role {
+        foreach ($accesses as $access) {
+            $role->recordAccesses()->updateOrCreate(
+                [
+                    'module' => $access['module'],
+                ],
+                [
+                    'access_level' => $access['access_level'],
+                ]
+            );
+        }
+
+        return $role->fresh('recordAccesses');
+    }
 }

@@ -3,7 +3,7 @@
 namespace App\Jobs;
 
 use App\Mail\VerificationCodeMail;
-use App\Models\VerificationCode;
+use App\Modules\Settings\Auth\Models\VerificationCode;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Queue\Queueable;
 use Illuminate\Support\Facades\Mail;
@@ -21,6 +21,7 @@ class SendVerificationCodeJob implements ShouldQueue
     public function handle(): void
     {
         $this->verificationCode->load('user');
+    
 
         Mail::to($this->verificationCode->user->email)
             ->send(

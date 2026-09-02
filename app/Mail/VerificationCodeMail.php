@@ -2,7 +2,7 @@
 
 namespace App\Mail;
 
-use App\Models\VerificationCode;
+use App\Modules\Settings\Auth\Models\VerificationCode;
 use Illuminate\Bus\Queueable;
 use Illuminate\Mail\Mailable;
 use Illuminate\Mail\Mailables\Content;

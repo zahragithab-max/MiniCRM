@@ -19,4 +19,9 @@ class Role extends Model
             'role_permission'
         )->withTimestamps();
     }
+
+    public function recordAccesses()
+    {
+        return $this->hasMany(RoleRecordAccess::class, 'role_id');
+    }
 }

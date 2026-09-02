@@ -96,6 +96,50 @@ class AuthService
         return $user;
     }
 
+
+
+    public function resendVerificationCode(string $email): void
+{
+    $user = User::where('email', $email)->first();
+
+    if (!$user) {
+        throw ValidationException::withMessages([
+            'email' => ['کاربری با این ایمیل پیدا نشد.'],
+        ]);
+    }
+
+    if ($user->email_verified_at) {
+        throw ValidationException::withMessages([
+            'email' => ['ایمیل شما قبلاً تأیید شده است.'],
+        ]);
+    }
+
+    VerificationCode::where('user_id', $user->id)
+        ->where('type', 'email_verification')
+        ->whereNull('used_at')
+        ->update([
+            'used_at' => now(),
+        ]);
+
+    $plainCode = (string) random_int(100000, 999999);
+
+    $verificationCode = VerificationCode::create([
+        'user_id' => $user->id,
+        'type' => 'email_verification',
+        'code' => Hash::make($plainCode),
+        'expires_at' => now()->addMinutes(10),
+        'used_at' => null,
+        'attempts' => 0,
+    ]);
+
+    SendVerificationCodeJob::dispatch(
+        $verificationCode,
+        $plainCode
+    );
+}
+
+    
+
     public function forgotPassword(string $email): void
     {
         $user = User::where('email', $email)->first();
@@ -183,7 +227,9 @@ class AuthService
             ]);
         }
 
-        $token = $user->createToken('MiniCRM')->plainTextToken;
+        $user->tokens()->delete();
+
+$token = $user->createToken('MiniCRM')->plainTextToken;
 
         return [
             'user' => $user,
