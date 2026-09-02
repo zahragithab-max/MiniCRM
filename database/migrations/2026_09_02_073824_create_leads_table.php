@@ -13,7 +13,25 @@ return new class extends Migration
     {
         Schema::create('leads', function (Blueprint $table) {
             $table->id();
+
+            $table->string('first_name');
+            $table->string('last_name');
+            $table->string('company_name')->nullable();
+            $table->string('email')->nullable();
+            $table->string('phone')->nullable();
+
+            $table->string('source')->nullable();
+            $table->string('status')->default('new');
+
+            $table->foreignId('assigned_to')
+                ->nullable()
+                ->constrained('users')
+                ->nullOnDelete();
+
+            $table->text('notes')->nullable();
+
             $table->timestamps();
+            $table->softDeletes();
         });
     }
 

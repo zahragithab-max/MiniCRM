@@ -6,7 +6,7 @@ use Illuminate\Http\Request;
 use App\Modules\Settings\Auth\Http\Controllers\AuthController;
 use App\Modules\Settings\Auth\Http\Controllers\UserController;
 use App\Modules\Settings\Roles\Http\Controllers\RoleRecordAccessController;
-
+use App\Modules\Leads\Http\Controllers\LeadController;
 use App\Modules\Settings\Roles\Http\Controllers\RoleController;
 use App\Modules\Settings\Roles\Http\Controllers\PermissionController;
 use App\Modules\Settings\Roles\Http\Controllers\UserRoleController;
@@ -35,12 +35,12 @@ Route::middleware('auth:sanctum')->group(function () {
 
   
 
-Route::get('/user', function (Request $request) {
+  Route::get('/user', function (Request $request) {
     return response()->json([
         'message' => 'USER ROUTE OK',
         'user' => $request->user(),
     ]);
-})->name('api.user');
+ })->name('api.user');
 
 
  
@@ -93,7 +93,7 @@ Route::get('/user', function (Request $request) {
     Route::put('/users/{user}/roles', [UserRoleController::class, 'sync'])
         ->middleware('permission:users.edit')
         ->name('api.users.roles.sync');
-Route::post('/users/{user}/roles/{role}', [UserRoleController::class, 'assign'])
+ Route::post('/users/{user}/roles/{role}', [UserRoleController::class, 'assign'])
         ->middleware('permission:users.edit')
         ->name('api.users.roles.assign');
 
@@ -140,6 +140,36 @@ Route::post('/users/{user}/roles/{role}', [UserRoleController::class, 'assign'])
     Route::delete('/record-access/{access}', [RoleRecordAccessController::class, 'destroy'])
         ->middleware('permission:roles.edit')
         ->name('api.roles.record-access.destroy');
+
+        Route::get('/leads', [LeadController::class, 'index'])
+    ->middleware('permission:leads.view')
+    ->name('api.leads.index');
+
+Route::post('/leads', [LeadController::class, 'store'])
+    ->middleware('permission:leads.create')
+    ->name('api.leads.store');
+
+    Route::get('/leads/export', [LeadController::class, 'export'])
+    ->middleware('permission:leads.export')
+    ->name('api.leads.export');
+
+Route::get('/leads/{id}', [LeadController::class, 'show'])
+    ->middleware('permission:leads.view')
+    ->name('api.leads.show');
+
+Route::put('/leads/{id}', [LeadController::class, 'update'])
+    ->middleware('permission:leads.edit')
+    ->name('api.leads.update');
+
+Route::delete('/leads/{id}', [LeadController::class, 'destroy'])
+    ->middleware('permission:leads.delete')
+    ->name('api.leads.destroy');
+
+Route::post('/leads/{id}/restore', [LeadController::class, 'restore'])
+    ->middleware('permission:leads.edit')
+    ->name('api.leads.restore');
+
+ 
 
 });
 
