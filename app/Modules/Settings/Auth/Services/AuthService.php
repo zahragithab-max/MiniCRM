@@ -11,6 +11,7 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Validation\ValidationException;
+use App\Modules\Accounts\Models\Account;
 
 class AuthService
 {
@@ -36,6 +37,38 @@ class AuthService
 
         return $user;
     }
+
+    public function export(): \Symfony\Component\HttpFoundation\StreamedResponse
+{
+    $fileName = 'accounts-' . now()->format('Y-m-d-H-i-s') . '.csv';
+
+    return response()->streamDownload(function () {
+        $handle = fopen('php://output', 'w');
+
+        fputcsv($handle, [
+            'ID',
+            'Name',
+            'Customer Category',
+            'Created At',
+        ]);
+
+        Account::latest()
+            ->chunk(500, function ($accounts) use ($handle) {
+                foreach ($accounts as $account) {
+                    fputcsv($handle, [
+                        $account->id,
+                        $account->name,
+                        $account->customer_category,
+                        $account->created_at?->toDateTimeString(),
+                    ]);
+                }
+            });
+
+        fclose($handle);
+    }, $fileName, [
+        'Content-Type' => 'text/csv; charset=UTF-8',
+    ]);
+}
 
     public function verifyEmail(string $email, string $plainCode): User
     {

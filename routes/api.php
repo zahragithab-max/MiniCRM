@@ -10,6 +10,7 @@ use App\Modules\Leads\Http\Controllers\LeadController;
 use App\Modules\Settings\Roles\Http\Controllers\RoleController;
 use App\Modules\Settings\Roles\Http\Controllers\PermissionController;
 use App\Modules\Settings\Roles\Http\Controllers\UserRoleController;
+use App\Modules\Accounts\Http\Controllers\AccountController;
 
 
 
@@ -169,7 +170,34 @@ Route::post('/leads/{id}/restore', [LeadController::class, 'restore'])
     ->middleware('permission:leads.edit')
     ->name('api.leads.restore');
 
- 
+    Route::get('/accounts', [AccountController::class, 'index'])
+    ->middleware('permission:accounts.view')
+    ->name('api.accounts.index');
+
+Route::post('/accounts', [AccountController::class, 'store'])
+    ->middleware('permission:accounts.create')
+    ->name('api.accounts.store');
+
+    Route::get('/accounts/export', [AccountController::class, 'export'])
+    ->middleware('permission:accounts.export')
+    ->name('api.accounts.export');
+
+
+Route::get('/accounts/{id}', [AccountController::class, 'show'])
+    ->middleware('permission:accounts.view')
+    ->name('api.accounts.show');
+
+Route::put('/accounts/{id}', [AccountController::class, 'update'])
+    ->middleware('permission:accounts.edit')
+    ->name('api.accounts.update');
+
+Route::delete('/accounts/{id}', [AccountController::class, 'destroy'])
+    ->middleware('permission:accounts.delete')
+    ->name('api.accounts.destroy');
+
+Route::post('/accounts/{id}/restore', [AccountController::class, 'restore'])
+    ->middleware('permission:accounts.edit')
+    ->name('api.accounts.restore');
 
 });
 
