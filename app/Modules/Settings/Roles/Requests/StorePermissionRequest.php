@@ -15,6 +15,8 @@ class StorePermissionRequest extends FormRequest
     {
         return [
             'name' => ['required', 'string', 'max:150', 'unique:permissions,name'],
+            'module' => ['required', 'string', 'max:100'],
+            'action' => ['required', 'string', 'max:100'],
             'description' => ['nullable', 'string', 'max:500'],
         ];
     }

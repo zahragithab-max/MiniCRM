@@ -11,6 +11,7 @@ use App\Modules\Settings\Roles\Http\Controllers\RoleController;
 use App\Modules\Settings\Roles\Http\Controllers\PermissionController;
 use App\Modules\Settings\Roles\Http\Controllers\UserRoleController;
 use App\Modules\Accounts\Http\Controllers\AccountController;
+use App\Modules\Contacts\Http\Controllers\ContactController;
 
 
 
@@ -198,6 +199,34 @@ Route::delete('/accounts/{id}', [AccountController::class, 'destroy'])
 Route::post('/accounts/{id}/restore', [AccountController::class, 'restore'])
     ->middleware('permission:accounts.edit')
     ->name('api.accounts.restore');
+
+    Route::get('/contacts', [ContactController::class, 'index'])
+    ->middleware('permission:contacts.view')
+    ->name('api.contacts.index');
+
+Route::post('/contacts', [ContactController::class, 'store'])
+    ->middleware('permission:contacts.create')
+    ->name('api.contacts.store');
+
+Route::get('/contacts/{id}', [ContactController::class, 'show'])
+    ->middleware('permission:contacts.view')
+    ->name('api.contacts.show');
+
+Route::put('/contacts/{id}', [ContactController::class, 'update'])
+    ->middleware('permission:contacts.edit')
+    ->name('api.contacts.update');
+
+Route::delete('/contacts/{id}', [ContactController::class, 'destroy'])
+    ->middleware('permission:contacts.delete')
+    ->name('api.contacts.destroy');
+
+Route::post('/contacts/{id}/restore', [ContactController::class, 'restore'])
+    ->middleware('permission:contacts.edit')
+    ->name('api.contacts.restore');
+
+    Route::post('/contacts/{id}/email', [ContactController::class, 'sendEmail'])
+    ->middleware('permission:contacts.email')
+    ->name('api.contacts.email');
 
 });
 
