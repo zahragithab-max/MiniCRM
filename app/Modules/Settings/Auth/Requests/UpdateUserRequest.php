@@ -18,15 +18,14 @@ class UpdateUserRequest extends FormRequest
 
         return [
             'name' => ['sometimes', 'string', 'max:255'],
-
             'email' => [
                 'sometimes',
                 'email',
                 'max:255',
                 Rule::unique('users', 'email')->ignore($user?->id),
             ],
-
             'password' => ['sometimes', 'string', 'min:8'],
+            'manager_id' => ['sometimes', 'nullable', 'integer', 'exists:users,id'],
         ];
-    }
+}
 }

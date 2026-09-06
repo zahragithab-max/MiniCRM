@@ -12,7 +12,11 @@ use App\Modules\Settings\Roles\Http\Controllers\PermissionController;
 use App\Modules\Settings\Roles\Http\Controllers\UserRoleController;
 use App\Modules\Accounts\Http\Controllers\AccountController;
 use App\Modules\Contacts\Http\Controllers\ContactController;
-
+use App\Modules\Deals\Http\Controllers\DealController;
+use App\Modules\Deals\Http\Controllers\DealStageController;
+use App\Modules\Deals\Http\Controllers\DealNotificationController;
+use App\Modules\Deals\Http\Controllers\DealReportController;
+use App\Modules\Products\Http\Controllers\ProductController;
 
 
 Route::post('/register', [AuthController::class, 'register'])
@@ -228,8 +232,76 @@ Route::post('/contacts/{id}/restore', [ContactController::class, 'restore'])
     ->middleware('permission:contacts.email')
     ->name('api.contacts.email');
 
+    Route::get('/deals', [DealController::class, 'index'])
+    ->middleware('permission:deals.view')
+    ->name('api.deals.index');
+
+Route::post('/deals', [DealController::class, 'store'])
+    ->middleware('permission:deals.create')
+    ->name('api.deals.store');
+
+Route::get('/deals/{id}', [DealController::class, 'show'])
+    ->middleware('permission:deals.view')
+    ->name('api.deals.show');
+
+Route::put('/deals/{id}', [DealController::class, 'update'])
+    ->middleware('permission:deals.edit')
+    ->name('api.deals.update');
+
+Route::delete('/deals/{id}', [DealController::class, 'destroy'])
+    ->middleware('permission:deals.delete')
+    ->name('api.deals.destroy');
+    
+    Route::get('/deal-stages', [DealStageController::class, 'index'])
+    ->middleware('permission:deals.view')
+    ->name('api.deal-stages.index');
+
+Route::post('/deal-stages', [DealStageController::class, 'store'])
+    ->middleware('permission:deals.create')
+    ->name('api.deal-stages.store');
+
+Route::get('/deal-stages/{id}', [DealStageController::class, 'show'])
+    ->middleware('permission:deals.view')
+    ->name('api.deal-stages.show');
+
+Route::put('/deal-stages/{id}', [DealStageController::class, 'update'])
+    ->middleware('permission:deals.edit')
+    ->name('api.deal-stages.update');
+
+Route::delete('/deal-stages/{id}', [DealStageController::class, 'destroy'])
+    ->middleware('permission:deals.delete')
+    ->name('api.deal-stages.destroy');
+
+    Route::get('/deal-notifications', [DealNotificationController::class, 'index'])
+    ->name('api.deal-notifications.index');
+
+    Route::get('/products', [ProductController::class, 'index'])
+    ->middleware('permission:products.view')
+    ->name('api.products.index');
+
+Route::post('/products', [ProductController::class, 'store'])
+    ->middleware('permission:products.create')
+    ->name('api.products.store');
+
+Route::get('/products/{id}', [ProductController::class, 'show'])
+    ->middleware('permission:products.view')
+    ->name('api.products.show');
+
+Route::put('/products/{id}', [ProductController::class, 'update'])
+    ->middleware('permission:products.edit')
+    ->name('api.products.update');
+
+Route::delete('/products/{id}', [ProductController::class, 'destroy'])
+    ->middleware('permission:products.delete')
+    ->name('api.products.destroy');
+
 });
 
 
 Route::post('/resend-verification-code', [AuthController::class, 'resendVerificationCode'])
     ->name('api.auth.resend-verification-code');
+
+    Route::get('/deals/reports/conversion-rate', [
+        DealReportController::class,
+        'conversionRate',
+    ]);
