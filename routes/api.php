@@ -17,6 +17,8 @@ use App\Modules\Deals\Http\Controllers\DealStageController;
 use App\Modules\Deals\Http\Controllers\DealNotificationController;
 use App\Modules\Deals\Http\Controllers\DealReportController;
 use App\Modules\Products\Http\Controllers\ProductController;
+use App\Modules\Tasks\Http\Controllers\TaskController;
+use App\Modules\Tasks\Http\Controllers\CalendarEventController;
 
 
 Route::post('/register', [AuthController::class, 'register'])
@@ -294,6 +296,46 @@ Route::put('/products/{id}', [ProductController::class, 'update'])
 Route::delete('/products/{id}', [ProductController::class, 'destroy'])
     ->middleware('permission:products.delete')
     ->name('api.products.destroy');
+
+    Route::get('/tasks', [TaskController::class, 'index'])
+    ->middleware('permission:tasks.view')
+    ->name('api.tasks.index');
+
+Route::post('/tasks', [TaskController::class, 'store'])
+    ->middleware('permission:tasks.create')
+    ->name('api.tasks.store');
+
+Route::get('/tasks/{id}', [TaskController::class, 'show'])
+    ->middleware('permission:tasks.view')
+    ->name('api.tasks.show');
+
+Route::put('/tasks/{id}', [TaskController::class, 'update'])
+    ->middleware('permission:tasks.edit')
+    ->name('api.tasks.update');
+
+Route::delete('/tasks/{id}', [TaskController::class, 'destroy'])
+    ->middleware('permission:tasks.delete')
+    ->name('api.tasks.destroy');
+
+    Route::get('/calendar-events', [CalendarEventController::class, 'index'])
+    ->middleware('permission:calendar_events.view')
+    ->name('api.calendar-events.index');
+
+Route::post('/calendar-events', [CalendarEventController::class, 'store'])
+    ->middleware('permission:calendar_events.create')
+    ->name('api.calendar-events.store');
+
+Route::get('/calendar-events/{id}', [CalendarEventController::class, 'show'])
+    ->middleware('permission:calendar_events.view')
+    ->name('api.calendar-events.show');
+
+Route::put('/calendar-events/{id}', [CalendarEventController::class, 'update'])
+    ->middleware('permission:calendar_events.edit')
+    ->name('api.calendar-events.update');
+
+Route::delete('/calendar-events/{id}', [CalendarEventController::class, 'destroy'])
+    ->middleware('permission:calendar_events.delete')
+    ->name('api.calendar-events.destroy');
 
 });
 

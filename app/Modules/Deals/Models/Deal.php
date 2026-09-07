@@ -6,8 +6,10 @@ use App\Modules\Accounts\Models\Account;
 use App\Modules\Contacts\Models\Contact;
 use App\Modules\Settings\Auth\Models\User;
 use App\Modules\Deals\Models\DealStage;
+use App\Modules\Tasks\Models\Task;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class Deal extends Model
 {
@@ -48,5 +50,11 @@ class Deal extends Model
     public function owner(): BelongsTo
     {
         return $this->belongsTo(User::class, 'owner_id');
+    }
+
+    public function tasks(): HasMany
+    {
+        return $this->hasMany(Task::class, 'taskable_id')
+            ->where('taskable_type', Task::class);
     }
 }
