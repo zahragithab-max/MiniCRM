@@ -19,6 +19,10 @@ use App\Modules\Deals\Http\Controllers\DealReportController;
 use App\Modules\Products\Http\Controllers\ProductController;
 use App\Modules\Tasks\Http\Controllers\TaskController;
 use App\Modules\Tasks\Http\Controllers\CalendarEventController;
+use App\Modules\Tickets\Http\Controllers\TicketController;
+use App\Modules\Tickets\Http\Controllers\TicketMessageController;
+use App\Modules\Tickets\Http\Controllers\TicketAttachmentController;
+use App\Modules\Tickets\Http\Controllers\TicketSatisfactionController;
 
 
 Route::post('/register', [AuthController::class, 'register'])
@@ -336,6 +340,44 @@ Route::put('/calendar-events/{id}', [CalendarEventController::class, 'update'])
 Route::delete('/calendar-events/{id}', [CalendarEventController::class, 'destroy'])
     ->middleware('permission:calendar_events.delete')
     ->name('api.calendar-events.destroy');
+
+    Route::get('/tickets', [TicketController::class, 'index'])
+    ->middleware('permission:tickets.view')
+    ->name('api.tickets.index');
+
+Route::post('/tickets', [TicketController::class, 'store'])
+    ->middleware('permission:tickets.create')
+    ->name('api.tickets.store');
+
+Route::get('/tickets/{id}', [TicketController::class, 'show'])
+    ->middleware('permission:tickets.view')
+    ->name('api.tickets.show');
+
+Route::put('/tickets/{id}', [TicketController::class, 'update'])
+    ->middleware('permission:tickets.edit')
+    ->name('api.tickets.update');
+
+Route::delete('/tickets/{id}', [TicketController::class, 'destroy'])
+    ->middleware('permission:tickets.delete')
+    ->name('api.tickets.destroy');
+
+    Route::get('/tickets/{ticketId}/messages', [TicketMessageController::class, 'index'])
+    ->middleware('permission:tickets.view')
+    ->name('api.tickets.messages.index');
+
+Route::post('/tickets/{ticketId}/messages', [TicketMessageController::class, 'store'])
+    ->middleware('permission:tickets.edit')
+    ->name('api.tickets.messages.store');
+
+    Route::post('/ticket-messages/{messageId}/attachments', [TicketAttachmentController::class, 'store'])
+    ->middleware('permission:tickets.edit')
+    ->name('api.ticket-messages.attachments.store');
+
+Route::post('/tickets/{ticketId}/satisfaction', [TicketSatisfactionController::class, 'store'])
+    ->middleware('permission:tickets.edit')
+    ->name('api.tickets.satisfaction.store');
+
+
 
 });
 
