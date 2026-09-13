@@ -19,6 +19,11 @@ class UpdateProductRequest extends FormRequest
         return [
             'name' => ['sometimes', 'string', 'max:255'],
             'description' => ['nullable', 'string'],
+            'image' => [
+                'nullable',
+                'image',
+                'max:5120',
+            ],
             'sku' => [
                 'sometimes',
                 'string',
@@ -26,8 +31,12 @@ class UpdateProductRequest extends FormRequest
                 Rule::unique('products', 'sku')->ignore($productId),
             ],
             'price' => ['sometimes', 'numeric', 'min:0'],
+            'stock' => [
+                'sometimes',
+                'integer',
+                'min:0',
+            ],
             'is_active' => ['sometimes', 'boolean'],
         ];
     }
 }
-

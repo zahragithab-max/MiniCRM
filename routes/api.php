@@ -23,6 +23,7 @@ use App\Modules\Tickets\Http\Controllers\TicketController;
 use App\Modules\Tickets\Http\Controllers\TicketMessageController;
 use App\Modules\Tickets\Http\Controllers\TicketAttachmentController;
 use App\Modules\Tickets\Http\Controllers\TicketSatisfactionController;
+use App\Modules\Deals\Http\Controllers\DealProductController;
 
 
 Route::post('/register', [AuthController::class, 'register'])
@@ -280,6 +281,20 @@ Route::delete('/deal-stages/{id}', [DealStageController::class, 'destroy'])
 
     Route::get('/deal-notifications', [DealNotificationController::class, 'index'])
     ->name('api.deal-notifications.index');
+
+    Route::post('/deals/{dealId}/products', [
+        DealProductController::class,
+        'store',
+    ])
+        ->middleware('permission:deals.edit')
+        ->name('api.deals.products.store');
+    
+    Route::get('/deals/{dealId}/products', [
+        DealProductController::class,
+        'index',
+    ])
+        ->middleware('permission:deals.view')
+        ->name('api.deals.products.index');
 
     Route::get('/products', [ProductController::class, 'index'])
     ->middleware('permission:products.view')
