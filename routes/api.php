@@ -27,6 +27,8 @@ use App\Modules\Deals\Http\Controllers\DealProductController;
 use App\Modules\Quotes\Http\Controllers\QuoteController;
 use App\Modules\Quotes\Http\Controllers\QuoteItemController;
 use App\Modules\Settings\System\Http\Controllers\SystemSettingController;
+use App\Modules\Invoices\Http\Controllers\InvoiceController;
+use App\Modules\Invoices\Http\Controllers\InvoiceItemController;
 
 
 Route::post('/register', [AuthController::class, 'register'])
@@ -453,3 +455,28 @@ Route::post('/resend-verification-code', [AuthController::class, 'resendVerifica
         DealReportController::class,
         'conversionRate',
     ]);
+   
+Route::get('/invoices', [InvoiceController::class, 'index'])
+    ->name('api.invoices.index');
+
+Route::post('/invoices', [InvoiceController::class, 'store'])
+    ->name('api.invoices.store');
+
+Route::get('/invoices/{id}', [InvoiceController::class, 'show'])
+    ->name('api.invoices.show');
+
+Route::get('/invoices/{invoiceId}/items', [
+    InvoiceItemController::class,
+    'index',
+])->name('api.invoices.items.index');
+
+Route::post('/invoices/{invoiceId}/items', [
+    InvoiceItemController::class,
+    'store',
+])->name('api.invoices.items.store');
+
+
+Route::post('/invoices/{id}/issue', [
+    InvoiceController::class,
+    'issue',
+])->name('api.invoices.issue');
