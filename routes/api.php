@@ -24,6 +24,9 @@ use App\Modules\Tickets\Http\Controllers\TicketMessageController;
 use App\Modules\Tickets\Http\Controllers\TicketAttachmentController;
 use App\Modules\Tickets\Http\Controllers\TicketSatisfactionController;
 use App\Modules\Deals\Http\Controllers\DealProductController;
+use App\Modules\Quotes\Http\Controllers\QuoteController;
+use App\Modules\Quotes\Http\Controllers\QuoteItemController;
+use App\Modules\Settings\System\Http\Controllers\SystemSettingController;
 
 
 Route::post('/register', [AuthController::class, 'register'])
@@ -392,7 +395,53 @@ Route::post('/tickets/{ticketId}/satisfaction', [TicketSatisfactionController::c
     ->middleware('permission:tickets.edit')
     ->name('api.tickets.satisfaction.store');
 
+    Route::get('/quotes', [
+        QuoteController::class,
+        'index',
+    ])
+        ->middleware('permission:quotes.view')
+        ->name('api.quotes.index');
+    
+    Route::post('/quotes', [
+        QuoteController::class,
+        'store',
+    ])
+        ->middleware('permission:quotes.create')
+        ->name('api.quotes.store');
+    
+    Route::get('/quotes/{id}', [
+        QuoteController::class,
+        'show',
+    ])
+        ->middleware('permission:quotes.view')
+        ->name('api.quotes.show');
+       
 
+Route::get('/quotes/{quoteId}/items', [
+    QuoteItemController::class,
+    'index',
+])
+    ->middleware('permission:quotes.view')
+    ->name('api.quotes.items.index');
+
+Route::post('/quotes/{quoteId}/items', [
+    QuoteItemController::class,
+    'store',
+])
+    ->middleware('permission:quotes.edit')
+    ->name('api.quotes.items.store');
+
+    Route::get('/settings/vat', [
+        SystemSettingController::class,
+        'vat',
+    ])
+        ->name('api.settings.vat');
+    
+    Route::put('/settings/vat', [
+        SystemSettingController::class,
+        'updateVat',
+    ])
+        ->name('api.settings.vat.update');
 
 });
 
