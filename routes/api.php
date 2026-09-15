@@ -480,3 +480,9 @@ Route::post('/invoices/{id}/issue', [
     InvoiceController::class,
     'issue',
 ])->name('api.invoices.issue');
+
+Route::get('/invoices/{id}/pdf', [InvoiceController::class, 'pdf'])
+    ->name('api.invoices.pdf');
+
+    Route::put('/invoices/{invoiceId}/items/{itemId}', [InvoiceItemController::class, 'update'])
+    ->name('api.invoices.items.update');

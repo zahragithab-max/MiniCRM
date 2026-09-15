@@ -16,7 +16,6 @@ class InvoiceItemService
     ): InvoiceItem {
         return DB::transaction(function () use ($invoice, $data) {
             $product = Product::findOrFail($data['product_id']);
-
             $quantity = $data['quantity'];
             $unitPrice = $data['unit_price'] ?? $product->price;
             $discount = $data['discount'] ?? 0;
@@ -49,6 +48,52 @@ class InvoiceItemService
             $this->recalculateInvoiceTotals($invoice);
 
             return $invoiceItem->load('product');
+        });
+    }
+
+    public function updateItem(
+        InvoiceItem $invoiceItem,
+        array $data
+    ): InvoiceItem {
+        return DB::transaction(function () use ($invoiceItem, $data) {
+            $invoice = $invoiceItem->invoice;
+
+            $product = isset($data['product_id'])
+                ? Product::findOrFail($data['product_id'])
+                : $invoiceItem->product;
+
+            $quantity = $data['quantity'] ?? $invoiceItem->quantity;
+            $unitPrice = $data['unit_price'] ?? $invoiceItem->unit_price;
+            $discount = $data['discount'] ?? $invoiceItem->discount;
+
+            $subtotal = $quantity * $unitPrice;
+
+            if ($discount > $subtotal) {
+                throw ValidationException::withMessages([
+                    'discount' => 'Discount cannot be greater than the item subtotal.',
+                ]);
+            }
+
+            $taxableAmount = $subtotal - $discount;
+
+            $tax = $invoice->vat_enabled
+                ? ($taxableAmount * $invoice->vat_rate) / 100
+                : 0;
+
+            $total = $taxableAmount + $tax;
+
+            $invoiceItem->update([
+                'product_id' => $product->id,
+                'quantity' => $quantity,
+                'unit_price' => $unitPrice,
+                'discount' => $discount,
+                'tax' => $tax,
+                'total' => $total,
+            ]);
+
+            $this->recalculateInvoiceTotals($invoice);
+
+            return $invoiceItem->fresh('product');
         });
     }
 

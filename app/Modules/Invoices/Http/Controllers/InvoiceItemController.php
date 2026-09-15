@@ -7,6 +7,7 @@ use App\Modules\Invoices\Http\Requests\AddInvoiceItemRequest;
 use App\Modules\Invoices\Models\Invoice;
 use App\Modules\Invoices\Services\InvoiceItemService;
 use Illuminate\Http\JsonResponse;
+use App\Modules\Invoices\Http\Requests\UpdateInvoiceItemRequest;
 
 class InvoiceItemController extends Controller
 {
@@ -34,5 +35,23 @@ class InvoiceItemController extends Controller
         );
 
         return $this->success($invoiceItem, 201);
+    }
+    public function update(
+        UpdateInvoiceItemRequest $request,
+        int $invoiceId,
+        int $itemId
+    ): JsonResponse {
+        $invoice = Invoice::findOrFail($invoiceId);
+    
+        $invoiceItem = $invoice->items()
+            ->whereKey($itemId)
+            ->firstOrFail();
+    
+        $invoiceItem = $this->invoiceItemService->updateItem(
+            $invoiceItem,
+            $request->validated()
+        );
+    
+        return $this->success($invoiceItem);
     }
 }

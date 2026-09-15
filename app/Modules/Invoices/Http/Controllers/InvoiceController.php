@@ -8,6 +8,7 @@ use App\Modules\Invoices\Models\Invoice;
 use App\Modules\Invoices\Services\InvoiceService;
 use App\Support\Helpers\JalaliHelper;
 use Illuminate\Http\JsonResponse;
+use Barryvdh\DomPDF\Facade\Pdf;
 
 class InvoiceController extends Controller
 {
@@ -92,6 +93,101 @@ class InvoiceController extends Controller
 
         return $this->success(
             $this->formatDates($invoice)
+        );
+    }
+
+    public function pdf(int $id)
+    {
+        $invoice = Invoice::with([
+            'deal',
+            'account',
+            'contact',
+            'quote',
+            'items.product',
+        ])->findOrFail($id);
+    
+        $html = '
+            <html>
+            <head>
+                <meta charset="UTF-8">
+                <style>
+                    body {
+                        font-family: DejaVu Sans, sans-serif;
+                        direction: ltr;
+                        font-size: 12px;
+                    }
+    
+                    h1 {
+                        text-align: center;
+                    }
+    
+                    table {
+                        width: 100%;
+                        border-collapse: collapse;
+                        margin-top: 20px;
+                    }
+    
+                    th, td {
+                        border: 1px solid #000;
+                        padding: 8px;
+                        text-align: left;
+                    }
+    
+                    .total {
+                        margin-top: 20px;
+                    }
+                </style>
+            </head>
+            <body>
+                <h1>Invoice</h1>
+    
+                <p>Invoice Number: ' . htmlspecialchars($invoice->invoice_number) . '</p>
+                <p>Issue Date: ' . htmlspecialchars($invoice->issue_date?->format('Y-m-d')) . '</p>
+                <p>Due Date: ' . htmlspecialchars($invoice->due_date?->format('Y-m-d')) . '</p>
+                <p>Account: ' . htmlspecialchars($invoice->account?->name ?? '') . '</p>
+                <p>Contact: ' . htmlspecialchars($invoice->contact?->name ?? '') . '</p>
+    
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Product</th>
+                            <th>Quantity</th>
+                            <th>Unit Price</th>
+                            <th>Discount</th>
+                            <th>Tax</th>
+                            <th>Total</th>
+                        </tr>
+                    </thead>
+                    <tbody>';
+    
+        foreach ($invoice->items as $item) {
+            $html .= '
+                        <tr>
+                            <td>' . htmlspecialchars($item->product?->name ?? '') . '</td>
+                            <td>' . $item->quantity . '</td>
+                            <td>' . $item->unit_price . '</td>
+                            <td>' . $item->discount . '</td>
+                            <td>' . $item->tax . '</td>
+                            <td>' . $item->total . '</td>
+                        </tr>';
+        }
+    
+        $html .= '
+                    </tbody>
+                </table>
+    
+                <div class="total">
+                    <p>Subtotal: ' . $invoice->subtotal . '</p>
+                    <p>VAT: ' . $invoice->vat . '</p>
+                    <p>Grand Total: ' . $invoice->grand_total . '</p>
+                </div>
+            </body>
+            </html>';
+    
+        $pdf = Pdf::loadHTML($html);
+    
+        return $pdf->download(
+            $invoice->invoice_number . '.pdf'
         );
     }
 
