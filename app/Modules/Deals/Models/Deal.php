@@ -4,12 +4,14 @@ namespace App\Modules\Deals\Models;
 
 use App\Modules\Accounts\Models\Account;
 use App\Modules\Contacts\Models\Contact;
+use App\Modules\Documents\Models\Document;
 use App\Modules\Settings\Auth\Models\User;
 use App\Modules\Deals\Models\DealStage;
 use App\Modules\Tasks\Models\Task;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\MorphMany;
 use App\Modules\Deals\Models\DealProduct;
 
 class Deal extends Model
@@ -54,13 +56,18 @@ class Deal extends Model
     }
 
     public function products(): HasMany
-{
-    return $this->hasMany(DealProduct::class);
-}
+    {
+        return $this->hasMany(DealProduct::class);
+    }
 
     public function tasks(): HasMany
     {
         return $this->hasMany(Task::class, 'taskable_id')
             ->where('taskable_type', Task::class);
+    }
+
+    public function documents(): MorphMany
+    {
+        return $this->morphMany(Document::class, 'documentable');
     }
 }

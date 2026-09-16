@@ -2,11 +2,13 @@
 
 namespace App\Modules\Tickets\Models;
 
+use App\Modules\Documents\Models\Document;
 use App\Modules\Settings\Auth\Models\User;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\HasOne;
+use Illuminate\Database\Eloquent\Relations\MorphMany;
 
 class Ticket extends Model
 {
@@ -46,5 +48,10 @@ class Ticket extends Model
     public function satisfaction(): HasOne
     {
         return $this->hasOne(TicketSatisfaction::class);
+    }
+
+    public function documents(): MorphMany
+    {
+        return $this->morphMany(Document::class, 'documentable');
     }
 }

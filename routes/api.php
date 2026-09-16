@@ -29,460 +29,329 @@ use App\Modules\Quotes\Http\Controllers\QuoteItemController;
 use App\Modules\Settings\System\Http\Controllers\SystemSettingController;
 use App\Modules\Invoices\Http\Controllers\InvoiceController;
 use App\Modules\Invoices\Http\Controllers\InvoiceItemController;
+use App\Modules\Documents\Http\Controllers\DocumentController;
 
 
-Route::post('/register', [AuthController::class, 'register'])
-    ->name('api.auth.register');
+/*
+|--------------------------------------------------------------------------
+| Public Auth Routes (no auth:sanctum)
+|--------------------------------------------------------------------------
+*/
 
-Route::post('/verify-email', [AuthController::class, 'verifyEmail'])
-    ->name('api.auth.verify-email');
-
-Route::post('/login', [AuthController::class, 'login'])
-    ->name('api.auth.login');
-
-Route::post('/forgot-password', [AuthController::class, 'forgotPassword'])
-    ->name('api.auth.forgot-password');
-
-Route::post('/reset-password', [AuthController::class, 'resetPassword'])
-    ->name('api.auth.reset-password');
-
-
+Route::controller(AuthController::class)->name('api.auth.')->group(function () {
+    Route::post('/register', 'register')->name('register');
+    Route::post('/verify-email', 'verifyEmail')->name('verify-email');
+    Route::post('/login', 'login')->name('login');
+    Route::post('/forgot-password', 'forgotPassword')->name('forgot-password');
+    Route::post('/reset-password', 'resetPassword')->name('reset-password');
+    Route::post('/resend-verification-code', 'resendVerificationCode')->name('resend-verification-code');
+});
 
 
 Route::middleware('auth:sanctum')->group(function () {
 
-  
+    /*
+    |----------------------------------------------------------------------
+    | Current User
+    |----------------------------------------------------------------------
+    */
 
-  Route::get('/user', function (Request $request) {
-    return response()->json([
-        'message' => 'USER ROUTE OK',
-        'user' => $request->user(),
-    ]);
- })->name('api.user');
-
-
- 
-
-    Route::get('/roles', [RoleController::class, 'index'])
-        ->middleware('permission:roles.view')
-        ->name('api.roles.index');
-
-    Route::post('/roles', [RoleController::class, 'store'])
-        ->middleware('permission:roles.create')
-        ->name('api.roles.store');
-
-    Route::put('/roles/{role}', [RoleController::class, 'update'])
-        ->middleware('permission:roles.edit')
-        ->name('api.roles.update');
-
-    Route::delete('/roles/{role}', [RoleController::class, 'destroy'])
-        ->middleware('permission:roles.delete')
-        ->name('api.roles.destroy');
-
-    Route::put('/roles/{role}/permissions', [RoleController::class, 'syncPermissions'])
-        ->middleware('permission:roles.edit')
-        ->name('api.roles.permissions.sync');
+    Route::get('/user', function (Request $request) {
+        return response()->json([
+            'message' => 'USER ROUTE OK',
+            'user' => $request->user(),
+        ]);
+    })->name('api.user');
 
 
-  
-    Route::get('/permissions', [PermissionController::class, 'index'])
-        ->middleware('permission:permissions.view')
-        ->name('api.permissions.index');
+    /*
+    |----------------------------------------------------------------------
+    | Roles, Permissions & Record Access
+    |----------------------------------------------------------------------
+    */
 
-    Route::post('/permissions', [PermissionController::class, 'store'])
-        ->middleware('permission:permissions.create')
-        ->name('api.permissions.store');
+    Route::prefix('roles')->name('api.roles.')->group(function () {
 
-    Route::put('/permissions/{permission}', [PermissionController::class, 'update'])
-        ->middleware('permission:permissions.edit')
-        ->name('api.permissions.update');
+        Route::controller(RoleController::class)->group(function () {
+            Route::get('/', 'index')->middleware('permission:roles.view')->name('index');
+            Route::post('/', 'store')->middleware('permission:roles.create')->name('store');
+            Route::put('/{role}', 'update')->middleware('permission:roles.edit')->name('update');
+            Route::delete('/{role}', 'destroy')->middleware('permission:roles.delete')->name('destroy');
+            Route::put('/{role}/permissions', 'syncPermissions')->middleware('permission:roles.edit')->name('permissions.sync');
+        });
 
-    Route::delete('/permissions/{permission}', [PermissionController::class, 'destroy'])
-        ->middleware('permission:permissions.delete')
-        ->name('api.permissions.destroy');
+        Route::controller(RoleRecordAccessController::class)->prefix('{role}/record-access')->name('record-access.')->group(function () {
+            Route::get('/', 'index')->middleware('permission:roles.view')->name('index');
+            Route::post('/', 'store')->middleware('permission:roles.edit')->name('store');
+        });
+    });
 
+    Route::controller(RoleRecordAccessController::class)->prefix('record-access')->name('api.roles.record-access.')->group(function () {
+        Route::put('/{access}', 'update')->middleware('permission:roles.edit')->name('update');
+        Route::delete('/{access}', 'destroy')->middleware('permission:roles.edit')->name('destroy');
+    });
 
- 
-
-    Route::get('/users/{user}/roles', [UserRoleController::class, 'index'])
-        ->middleware('permission:users.view')
-        ->name('api.users.roles.index');
-
-    Route::put('/users/{user}/roles', [UserRoleController::class, 'sync'])
-        ->middleware('permission:users.edit')
-        ->name('api.users.roles.sync');
- Route::post('/users/{user}/roles/{role}', [UserRoleController::class, 'assign'])
-        ->middleware('permission:users.edit')
-        ->name('api.users.roles.assign');
-
-    Route::delete('/users/{user}/roles/{role}', [UserRoleController::class, 'remove'])
-        ->middleware('permission:users.edit')
-        ->name('api.users.roles.remove');
-
-
-  
-
-    Route::get('/users', [UserController::class, 'index'])
-        ->middleware('permission:users.view')
-        ->name('api.users.index');
-
-    Route::post('/users', [UserController::class, 'store'])
-        ->middleware('permission:users.create')
-        ->name('api.users.store');
-
-    Route::get('/users/{user}', [UserController::class, 'show'])
-        ->middleware('permission:users.view')
-        ->name('api.users.show');
-
-    Route::put('/users/{user}', [UserController::class, 'update'])
-        ->middleware('permission:users.edit')
-        ->name('api.users.update');
-
-    Route::delete('/users/{user}', [UserController::class, 'destroy'])
-        ->middleware('permission:users.delete')
-        ->name('api.users.destroy');
+    Route::controller(PermissionController::class)->prefix('permissions')->name('api.permissions.')->group(function () {
+        Route::get('/', 'index')->middleware('permission:permissions.view')->name('index');
+        Route::post('/', 'store')->middleware('permission:permissions.create')->name('store');
+        Route::put('/{permission}', 'update')->middleware('permission:permissions.edit')->name('update');
+        Route::delete('/{permission}', 'destroy')->middleware('permission:permissions.delete')->name('destroy');
+    });
 
 
-        Route::get('/roles/{role}/record-access', [RoleRecordAccessController::class, 'index'])
-        ->middleware('permission:roles.view')
-        ->name('api.roles.record-access.index');
+    /*
+    |----------------------------------------------------------------------
+    | Users
+    |----------------------------------------------------------------------
+    */
+
+    Route::prefix('users')->name('api.users.')->group(function () {
+
+        Route::controller(UserController::class)->group(function () {
+            Route::get('/', 'index')->middleware('permission:users.view')->name('index');
+            Route::post('/', 'store')->middleware('permission:users.create')->name('store');
+            Route::get('/{user}', 'show')->middleware('permission:users.view')->name('show');
+            Route::put('/{user}', 'update')->middleware('permission:users.edit')->name('update');
+            Route::delete('/{user}', 'destroy')->middleware('permission:users.delete')->name('destroy');
+        });
+
+        Route::controller(UserRoleController::class)->prefix('{user}/roles')->name('roles.')->group(function () {
+            Route::get('/', 'index')->middleware('permission:users.view')->name('index');
+            Route::put('/', 'sync')->middleware('permission:users.edit')->name('sync');
+            Route::post('/{role}', 'assign')->middleware('permission:users.edit')->name('assign');
+            Route::delete('/{role}', 'remove')->middleware('permission:users.edit')->name('remove');
+        });
+
+        
+    });
+
+    Route::controller(UserRoleController::class)->prefix('{user}/roles')->name('roles.')->group(function () {
+        Route::get('/', 'index')->middleware('permission:users.view')->name('index');
+        Route::put('/', 'sync')->middleware('permission:users.edit')->name('sync');
+        Route::post('/{role}', 'assign')->middleware('permission:users.edit')->name('assign');
+        Route::delete('/{role}', 'remove')->middleware('permission:users.edit')->name('remove');
+    });
+
+    Route::controller(DocumentController::class)->prefix('documents')->name('api.documents.')->group(function () {
+        Route::get('/{id}/download', 'download')->middleware('permission:documents.view')->name('download');
+        Route::post('/{id}/copy', 'copy')->middleware('permission:documents.create')->name('copy');
+        Route::get('/{type}/{id}', 'index')->middleware('permission:documents.view')->name('index');
+        Route::post('/{type}/{id}', 'store')->middleware('permission:documents.create')->name('store');
+    });
     
-    Route::post('/roles/{role}/record-access', [RoleRecordAccessController::class, 'store'])
-        ->middleware('permission:roles.edit')
-        ->name('api.roles.record-access.store');
-    
-    Route::put('/record-access/{access}', [RoleRecordAccessController::class, 'update'])
-        ->middleware('permission:roles.edit')
-        ->name('api.roles.record-access.update');
-    
-    Route::delete('/record-access/{access}', [RoleRecordAccessController::class, 'destroy'])
-        ->middleware('permission:roles.edit')
-        ->name('api.roles.record-access.destroy');
+    /*
+    |----------------------------------------------------------------------
+    | Leads
+    |----------------------------------------------------------------------
+    */
 
-        Route::get('/leads', [LeadController::class, 'index'])
-    ->middleware('permission:leads.view')
-    ->name('api.leads.index');
-
-Route::post('/leads', [LeadController::class, 'store'])
-    ->middleware('permission:leads.create')
-    ->name('api.leads.store');
-
-    Route::get('/leads/export', [LeadController::class, 'export'])
-    ->middleware('permission:leads.export')
-    ->name('api.leads.export');
-
-Route::get('/leads/{id}', [LeadController::class, 'show'])
-    ->middleware('permission:leads.view')
-    ->name('api.leads.show');
-
-Route::put('/leads/{id}', [LeadController::class, 'update'])
-    ->middleware('permission:leads.edit')
-    ->name('api.leads.update');
-
-Route::delete('/leads/{id}', [LeadController::class, 'destroy'])
-    ->middleware('permission:leads.delete')
-    ->name('api.leads.destroy');
-
-Route::post('/leads/{id}/restore', [LeadController::class, 'restore'])
-    ->middleware('permission:leads.edit')
-    ->name('api.leads.restore');
-
-    Route::get('/accounts', [AccountController::class, 'index'])
-    ->middleware('permission:accounts.view')
-    ->name('api.accounts.index');
-
-Route::post('/accounts', [AccountController::class, 'store'])
-    ->middleware('permission:accounts.create')
-    ->name('api.accounts.store');
-
-    Route::get('/accounts/export', [AccountController::class, 'export'])
-    ->middleware('permission:accounts.export')
-    ->name('api.accounts.export');
+    Route::controller(LeadController::class)->prefix('leads')->name('api.leads.')->group(function () {
+        Route::get('/', 'index')->middleware('permission:leads.view')->name('index');
+        Route::post('/', 'store')->middleware('permission:leads.create')->name('store');
+        Route::get('/export', 'export')->middleware('permission:leads.export')->name('export'); // must stay before /{id}
+        Route::get('/{id}', 'show')->middleware('permission:leads.view')->name('show');
+        Route::put('/{id}', 'update')->middleware('permission:leads.edit')->name('update');
+        Route::delete('/{id}', 'destroy')->middleware('permission:leads.delete')->name('destroy');
+        Route::post('/{id}/restore', 'restore')->middleware('permission:leads.edit')->name('restore');
+    });
 
 
-Route::get('/accounts/{id}', [AccountController::class, 'show'])
-    ->middleware('permission:accounts.view')
-    ->name('api.accounts.show');
+    /*
+    |----------------------------------------------------------------------
+    | Accounts
+    |----------------------------------------------------------------------
+    */
 
-Route::put('/accounts/{id}', [AccountController::class, 'update'])
-    ->middleware('permission:accounts.edit')
-    ->name('api.accounts.update');
+    Route::controller(AccountController::class)->prefix('accounts')->name('api.accounts.')->group(function () {
+        Route::get('/', 'index')->middleware('permission:accounts.view')->name('index');
+        Route::post('/', 'store')->middleware('permission:accounts.create')->name('store');
+        Route::get('/export', 'export')->middleware('permission:accounts.export')->name('export'); // must stay before /{id}
+        Route::get('/{id}', 'show')->middleware('permission:accounts.view')->name('show');
+        Route::put('/{id}', 'update')->middleware('permission:accounts.edit')->name('update');
+        Route::delete('/{id}', 'destroy')->middleware('permission:accounts.delete')->name('destroy');
+        Route::post('/{id}/restore', 'restore')->middleware('permission:accounts.edit')->name('restore');
+    });
 
-Route::delete('/accounts/{id}', [AccountController::class, 'destroy'])
-    ->middleware('permission:accounts.delete')
-    ->name('api.accounts.destroy');
 
-Route::post('/accounts/{id}/restore', [AccountController::class, 'restore'])
-    ->middleware('permission:accounts.edit')
-    ->name('api.accounts.restore');
+    /*
+    |----------------------------------------------------------------------
+    | Contacts
+    |----------------------------------------------------------------------
+    */
 
-    Route::get('/contacts', [ContactController::class, 'index'])
-    ->middleware('permission:contacts.view')
-    ->name('api.contacts.index');
+    Route::controller(ContactController::class)->prefix('contacts')->name('api.contacts.')->group(function () {
+        Route::get('/', 'index')->middleware('permission:contacts.view')->name('index');
+        Route::post('/', 'store')->middleware('permission:contacts.create')->name('store');
+        Route::get('/{id}', 'show')->middleware('permission:contacts.view')->name('show');
+        Route::put('/{id}', 'update')->middleware('permission:contacts.edit')->name('update');
+        Route::delete('/{id}', 'destroy')->middleware('permission:contacts.delete')->name('destroy');
+        Route::post('/{id}/restore', 'restore')->middleware('permission:contacts.edit')->name('restore');
+        Route::post('/{id}/email', 'sendEmail')->middleware('permission:contacts.email')->name('email');
+    });
 
-Route::post('/contacts', [ContactController::class, 'store'])
-    ->middleware('permission:contacts.create')
-    ->name('api.contacts.store');
 
-Route::get('/contacts/{id}', [ContactController::class, 'show'])
-    ->middleware('permission:contacts.view')
-    ->name('api.contacts.show');
+    /*
+    |----------------------------------------------------------------------
+    | Deals (deals, stages, notifications, deal-products)
+    |----------------------------------------------------------------------
+    */
 
-Route::put('/contacts/{id}', [ContactController::class, 'update'])
-    ->middleware('permission:contacts.edit')
-    ->name('api.contacts.update');
+    Route::prefix('deals')->name('api.deals.')->group(function () {
 
-Route::delete('/contacts/{id}', [ContactController::class, 'destroy'])
-    ->middleware('permission:contacts.delete')
-    ->name('api.contacts.destroy');
+        Route::controller(DealController::class)->group(function () {
+            Route::get('/', 'index')->middleware('permission:deals.view')->name('index');
+            Route::post('/', 'store')->middleware('permission:deals.create')->name('store');
+            Route::get('/{id}', 'show')->middleware('permission:deals.view')->name('show');
+            Route::put('/{id}', 'update')->middleware('permission:deals.edit')->name('update');
+            Route::delete('/{id}', 'destroy')->middleware('permission:deals.delete')->name('destroy');
+        });
 
-Route::post('/contacts/{id}/restore', [ContactController::class, 'restore'])
-    ->middleware('permission:contacts.edit')
-    ->name('api.contacts.restore');
+        Route::controller(DealProductController::class)->prefix('{dealId}/products')->name('products.')->group(function () {
+            Route::post('/', 'store')->middleware('permission:deals.edit')->name('store');
+            Route::get('/', 'index')->middleware('permission:deals.view')->name('index');
+        });
+    });
 
-    Route::post('/contacts/{id}/email', [ContactController::class, 'sendEmail'])
-    ->middleware('permission:contacts.email')
-    ->name('api.contacts.email');
-
-    Route::get('/deals', [DealController::class, 'index'])
-    ->middleware('permission:deals.view')
-    ->name('api.deals.index');
-
-Route::post('/deals', [DealController::class, 'store'])
-    ->middleware('permission:deals.create')
-    ->name('api.deals.store');
-
-Route::get('/deals/{id}', [DealController::class, 'show'])
-    ->middleware('permission:deals.view')
-    ->name('api.deals.show');
-
-Route::put('/deals/{id}', [DealController::class, 'update'])
-    ->middleware('permission:deals.edit')
-    ->name('api.deals.update');
-
-Route::delete('/deals/{id}', [DealController::class, 'destroy'])
-    ->middleware('permission:deals.delete')
-    ->name('api.deals.destroy');
-    
-    Route::get('/deal-stages', [DealStageController::class, 'index'])
-    ->middleware('permission:deals.view')
-    ->name('api.deal-stages.index');
-
-Route::post('/deal-stages', [DealStageController::class, 'store'])
-    ->middleware('permission:deals.create')
-    ->name('api.deal-stages.store');
-
-Route::get('/deal-stages/{id}', [DealStageController::class, 'show'])
-    ->middleware('permission:deals.view')
-    ->name('api.deal-stages.show');
-
-Route::put('/deal-stages/{id}', [DealStageController::class, 'update'])
-    ->middleware('permission:deals.edit')
-    ->name('api.deal-stages.update');
-
-Route::delete('/deal-stages/{id}', [DealStageController::class, 'destroy'])
-    ->middleware('permission:deals.delete')
-    ->name('api.deal-stages.destroy');
+    Route::controller(DealStageController::class)->prefix('deal-stages')->name('api.deal-stages.')->group(function () {
+        Route::get('/', 'index')->middleware('permission:deals.view')->name('index');
+        Route::post('/', 'store')->middleware('permission:deals.create')->name('store');
+        Route::get('/{id}', 'show')->middleware('permission:deals.view')->name('show');
+        Route::put('/{id}', 'update')->middleware('permission:deals.edit')->name('update');
+        Route::delete('/{id}', 'destroy')->middleware('permission:deals.delete')->name('destroy');
+    });
 
     Route::get('/deal-notifications', [DealNotificationController::class, 'index'])
-    ->name('api.deal-notifications.index');
+        ->name('api.deal-notifications.index');
 
-    Route::post('/deals/{dealId}/products', [
-        DealProductController::class,
-        'store',
-    ])
-        ->middleware('permission:deals.edit')
-        ->name('api.deals.products.store');
-    
-    Route::get('/deals/{dealId}/products', [
-        DealProductController::class,
-        'index',
-    ])
-        ->middleware('permission:deals.view')
-        ->name('api.deals.products.index');
 
-    Route::get('/products', [ProductController::class, 'index'])
-    ->middleware('permission:products.view')
-    ->name('api.products.index');
+    /*
+    |----------------------------------------------------------------------
+    | Products
+    |----------------------------------------------------------------------
+    */
 
-Route::post('/products', [ProductController::class, 'store'])
-    ->middleware('permission:products.create')
-    ->name('api.products.store');
+    Route::controller(ProductController::class)->prefix('products')->name('api.products.')->group(function () {
+        Route::get('/', 'index')->middleware('permission:products.view')->name('index');
+        Route::post('/', 'store')->middleware('permission:products.create')->name('store');
+        Route::get('/{id}', 'show')->middleware('permission:products.view')->name('show');
+        Route::put('/{id}', 'update')->middleware('permission:products.edit')->name('update');
+        Route::delete('/{id}', 'destroy')->middleware('permission:products.delete')->name('destroy');
+    });
 
-Route::get('/products/{id}', [ProductController::class, 'show'])
-    ->middleware('permission:products.view')
-    ->name('api.products.show');
 
-Route::put('/products/{id}', [ProductController::class, 'update'])
-    ->middleware('permission:products.edit')
-    ->name('api.products.update');
+    /*
+    |----------------------------------------------------------------------
+    | Tasks & Calendar Events
+    |----------------------------------------------------------------------
+    */
 
-Route::delete('/products/{id}', [ProductController::class, 'destroy'])
-    ->middleware('permission:products.delete')
-    ->name('api.products.destroy');
+    Route::controller(TaskController::class)->prefix('tasks')->name('api.tasks.')->group(function () {
+        Route::get('/', 'index')->middleware('permission:tasks.view')->name('index');
+        Route::post('/', 'store')->middleware('permission:tasks.create')->name('store');
+        Route::get('/{id}', 'show')->middleware('permission:tasks.view')->name('show');
+        Route::put('/{id}', 'update')->middleware('permission:tasks.edit')->name('update');
+        Route::delete('/{id}', 'destroy')->middleware('permission:tasks.delete')->name('destroy');
+    });
 
-    Route::get('/tasks', [TaskController::class, 'index'])
-    ->middleware('permission:tasks.view')
-    ->name('api.tasks.index');
+    Route::controller(CalendarEventController::class)->prefix('calendar-events')->name('api.calendar-events.')->group(function () {
+        Route::get('/', 'index')->middleware('permission:calendar_events.view')->name('index');
+        Route::post('/', 'store')->middleware('permission:calendar_events.create')->name('store');
+        Route::get('/{id}', 'show')->middleware('permission:calendar_events.view')->name('show');
+        Route::put('/{id}', 'update')->middleware('permission:calendar_events.edit')->name('update');
+        Route::delete('/{id}', 'destroy')->middleware('permission:calendar_events.delete')->name('destroy');
+    });
 
-Route::post('/tasks', [TaskController::class, 'store'])
-    ->middleware('permission:tasks.create')
-    ->name('api.tasks.store');
 
-Route::get('/tasks/{id}', [TaskController::class, 'show'])
-    ->middleware('permission:tasks.view')
-    ->name('api.tasks.show');
+    /*
+    |----------------------------------------------------------------------
+    | Tickets (tickets, messages, attachments, satisfaction)
+    |----------------------------------------------------------------------
+    */
 
-Route::put('/tasks/{id}', [TaskController::class, 'update'])
-    ->middleware('permission:tasks.edit')
-    ->name('api.tasks.update');
+    Route::prefix('tickets')->name('api.tickets.')->group(function () {
 
-Route::delete('/tasks/{id}', [TaskController::class, 'destroy'])
-    ->middleware('permission:tasks.delete')
-    ->name('api.tasks.destroy');
+        Route::controller(TicketController::class)->group(function () {
+            Route::get('/', 'index')->middleware('permission:tickets.view')->name('index');
+            Route::post('/', 'store')->middleware('permission:tickets.create')->name('store');
+            Route::get('/{id}', 'show')->middleware('permission:tickets.view')->name('show');
+            Route::put('/{id}', 'update')->middleware('permission:tickets.edit')->name('update');
+            Route::delete('/{id}', 'destroy')->middleware('permission:tickets.delete')->name('destroy');
+        });
 
-    Route::get('/calendar-events', [CalendarEventController::class, 'index'])
-    ->middleware('permission:calendar_events.view')
-    ->name('api.calendar-events.index');
+        Route::controller(TicketMessageController::class)->prefix('{ticketId}/messages')->name('messages.')->group(function () {
+            Route::get('/', 'index')->middleware('permission:tickets.view')->name('index');
+            Route::post('/', 'store')->middleware('permission:tickets.edit')->name('store');
+        });
 
-Route::post('/calendar-events', [CalendarEventController::class, 'store'])
-    ->middleware('permission:calendar_events.create')
-    ->name('api.calendar-events.store');
-
-Route::get('/calendar-events/{id}', [CalendarEventController::class, 'show'])
-    ->middleware('permission:calendar_events.view')
-    ->name('api.calendar-events.show');
-
-Route::put('/calendar-events/{id}', [CalendarEventController::class, 'update'])
-    ->middleware('permission:calendar_events.edit')
-    ->name('api.calendar-events.update');
-
-Route::delete('/calendar-events/{id}', [CalendarEventController::class, 'destroy'])
-    ->middleware('permission:calendar_events.delete')
-    ->name('api.calendar-events.destroy');
-
-    Route::get('/tickets', [TicketController::class, 'index'])
-    ->middleware('permission:tickets.view')
-    ->name('api.tickets.index');
-
-Route::post('/tickets', [TicketController::class, 'store'])
-    ->middleware('permission:tickets.create')
-    ->name('api.tickets.store');
-
-Route::get('/tickets/{id}', [TicketController::class, 'show'])
-    ->middleware('permission:tickets.view')
-    ->name('api.tickets.show');
-
-Route::put('/tickets/{id}', [TicketController::class, 'update'])
-    ->middleware('permission:tickets.edit')
-    ->name('api.tickets.update');
-
-Route::delete('/tickets/{id}', [TicketController::class, 'destroy'])
-    ->middleware('permission:tickets.delete')
-    ->name('api.tickets.destroy');
-
-    Route::get('/tickets/{ticketId}/messages', [TicketMessageController::class, 'index'])
-    ->middleware('permission:tickets.view')
-    ->name('api.tickets.messages.index');
-
-Route::post('/tickets/{ticketId}/messages', [TicketMessageController::class, 'store'])
-    ->middleware('permission:tickets.edit')
-    ->name('api.tickets.messages.store');
+        Route::post('/{ticketId}/satisfaction', [TicketSatisfactionController::class, 'store'])
+            ->middleware('permission:tickets.edit')
+            ->name('satisfaction.store');
+    });
 
     Route::post('/ticket-messages/{messageId}/attachments', [TicketAttachmentController::class, 'store'])
-    ->middleware('permission:tickets.edit')
-    ->name('api.ticket-messages.attachments.store');
+        ->middleware('permission:tickets.edit')
+        ->name('api.ticket-messages.attachments.store');
 
-Route::post('/tickets/{ticketId}/satisfaction', [TicketSatisfactionController::class, 'store'])
-    ->middleware('permission:tickets.edit')
-    ->name('api.tickets.satisfaction.store');
 
-    Route::get('/quotes', [
-        QuoteController::class,
-        'index',
-    ])
-        ->middleware('permission:quotes.view')
-        ->name('api.quotes.index');
-    
-    Route::post('/quotes', [
-        QuoteController::class,
-        'store',
-    ])
-        ->middleware('permission:quotes.create')
-        ->name('api.quotes.store');
-    
-    Route::get('/quotes/{id}', [
-        QuoteController::class,
-        'show',
-    ])
-        ->middleware('permission:quotes.view')
-        ->name('api.quotes.show');
-       
+    /*
+    |----------------------------------------------------------------------
+    | Quotes
+    |----------------------------------------------------------------------
+    */
 
-Route::get('/quotes/{quoteId}/items', [
-    QuoteItemController::class,
-    'index',
-])
-    ->middleware('permission:quotes.view')
-    ->name('api.quotes.items.index');
+    Route::prefix('quotes')->name('api.quotes.')->group(function () {
 
-Route::post('/quotes/{quoteId}/items', [
-    QuoteItemController::class,
-    'store',
-])
-    ->middleware('permission:quotes.edit')
-    ->name('api.quotes.items.store');
+        Route::controller(QuoteController::class)->group(function () {
+            Route::get('/', 'index')->middleware('permission:quotes.view')->name('index');
+            Route::post('/', 'store')->middleware('permission:quotes.create')->name('store');
+            Route::get('/{id}', 'show')->middleware('permission:quotes.view')->name('show');
+        });
 
-    Route::get('/settings/vat', [
-        SystemSettingController::class,
-        'vat',
-    ])
-        ->name('api.settings.vat');
-    
-    Route::put('/settings/vat', [
-        SystemSettingController::class,
-        'updateVat',
-    ])
-        ->name('api.settings.vat.update');
+        Route::controller(QuoteItemController::class)->prefix('{quoteId}/items')->name('items.')->group(function () {
+            Route::get('/', 'index')->middleware('permission:quotes.view')->name('index');
+            Route::post('/', 'store')->middleware('permission:quotes.edit')->name('store');
+        });
+    });
+
+
+    /*
+    |----------------------------------------------------------------------
+    | Settings
+    |----------------------------------------------------------------------
+    */
+
+    Route::controller(SystemSettingController::class)->prefix('settings/vat')->name('api.settings.')->group(function () {
+        Route::get('/', 'vat')->name('vat');
+        Route::put('/', 'updateVat')->name('vat.update');
+    });
 
 });
 
 
-Route::post('/resend-verification-code', [AuthController::class, 'resendVerificationCode'])
-    ->name('api.auth.resend-verification-code');
+/*
+|--------------------------------------------------------------------------
+| Routes NOT wrapped in auth:sanctum (kept exactly as in the original file —
+| see note below the file about these being unprotected)
+|--------------------------------------------------------------------------
+*/
 
-    Route::get('/deals/reports/conversion-rate', [
-        DealReportController::class,
-        'conversionRate',
-    ]);
-   
-Route::get('/invoices', [InvoiceController::class, 'index'])
-    ->name('api.invoices.index');
+Route::get('/deals/reports/conversion-rate', [DealReportController::class, 'conversionRate']);
 
-Route::post('/invoices', [InvoiceController::class, 'store'])
-    ->name('api.invoices.store');
+Route::prefix('invoices')->name('api.invoices.')->group(function () {
 
-Route::get('/invoices/{id}', [InvoiceController::class, 'show'])
-    ->name('api.invoices.show');
+    Route::controller(InvoiceController::class)->group(function () {
+        Route::get('/', 'index')->name('index');
+        Route::post('/', 'store')->name('store');
+        Route::get('/{id}', 'show')->name('show');
+        Route::post('/{id}/issue', 'issue')->name('issue');
+        Route::get('/{id}/pdf', 'pdf')->name('pdf');
+    });
 
-Route::get('/invoices/{invoiceId}/items', [
-    InvoiceItemController::class,
-    'index',
-])->name('api.invoices.items.index');
-
-Route::post('/invoices/{invoiceId}/items', [
-    InvoiceItemController::class,
-    'store',
-])->name('api.invoices.items.store');
+    Route::controller(InvoiceItemController::class)->prefix('{invoiceId}/items')->name('items.')->group(function () {
+        Route::get('/', 'index')->name('index');
+        Route::post('/', 'store')->name('store');
+        Route::put('/{itemId}', 'update')->name('update');
+    });
+});
 
 
-Route::post('/invoices/{id}/issue', [
-    InvoiceController::class,
-    'issue',
-])->name('api.invoices.issue');
-
-Route::get('/invoices/{id}/pdf', [InvoiceController::class, 'pdf'])
-    ->name('api.invoices.pdf');
-
-    Route::put('/invoices/{invoiceId}/items/{itemId}', [InvoiceItemController::class, 'update'])
-    ->name('api.invoices.items.update');

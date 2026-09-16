@@ -3,9 +3,11 @@
 namespace App\Modules\Contacts\Models;
 
 use App\Modules\Accounts\Models\Account;
+use App\Modules\Documents\Models\Document;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\MorphMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
 
 class Contact extends Model
@@ -32,5 +34,10 @@ class Contact extends Model
     public function emails(): HasMany
     {
         return $this->hasMany(ContactEmail::class);
+    }
+
+    public function documents(): MorphMany
+    {
+        return $this->morphMany(Document::class, 'documentable');
     }
 }
