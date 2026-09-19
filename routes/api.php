@@ -30,6 +30,12 @@ use App\Modules\Settings\System\Http\Controllers\SystemSettingController;
 use App\Modules\Invoices\Http\Controllers\InvoiceController;
 use App\Modules\Invoices\Http\Controllers\InvoiceItemController;
 use App\Modules\Documents\Http\Controllers\DocumentController;
+use App\Modules\Settings\Notifications\Http\Controllers\NotificationSettingController;
+use App\Modules\Settings\Workflow\Http\Controllers\WorkflowController;
+use App\Modules\Settings\Workflow\Http\Controllers\WorkflowActionController;
+use App\Modules\Settings\Notifications\Http\Controllers\NotificationRuleController;
+use App\Modules\Settings\Notifications\Http\Controllers\NotificationRuleRecipientController;
+use App\Modules\Settings\Notifications\Http\Controllers\NotificationRuleChannelController;
 
 
 /*
@@ -261,6 +267,112 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::delete('/{id}', 'destroy')->middleware('permission:calendar_events.delete')->name('destroy');
     });
 
+    Route::controller(NotificationSettingController::class)
+    ->prefix('notification-settings')
+    ->name('api.notification-settings.')
+    ->group(function () {
+        Route::get('/')
+            ->middleware('permission:notifications.view')
+            ->name('index');
+
+        Route::put('/{notificationSetting}')
+            ->middleware('permission:notifications.edit')
+            ->name('update');
+    });
+
+    Route::controller(WorkflowController::class)
+    ->prefix('workflows')
+    ->name('api.workflows.')
+    ->group(function () {
+        Route::get('/', 'index')
+            ->middleware('permission:notifications.view')
+            ->name('index');
+
+        Route::post('/', 'store')
+            ->middleware('permission:notifications.create')
+            ->name('store');
+
+        Route::put('/{workflow}', 'update')
+            ->middleware('permission:notifications.edit')
+            ->name('update');
+    });
+
+Route::controller(WorkflowActionController::class)
+    ->prefix('workflows/{workflow}/actions')
+    ->name('api.workflow-actions.')
+    ->group(function () {
+        Route::get('/')
+            ->middleware('permission:notifications.view')
+            ->name('index');
+
+        Route::post('/')
+            ->middleware('permission:notifications.create')
+            ->name('store');
+    });
+
+Route::put(
+    '/workflow-actions/{workflowAction}',
+    [WorkflowActionController::class, 'update']
+)
+    ->middleware('permission:notifications.edit')
+    ->name('api.workflow-actions.update');
+
+    Route::controller(NotificationRuleController::class)
+    ->prefix('notification-rules')
+    ->name('api.notification-rules.')
+    ->group(function () {
+        Route::get('/', 'index')
+            ->middleware('permission:notifications.view')
+            ->name('index');
+
+        Route::post('/', 'store')
+            ->middleware('permission:notifications.create')
+            ->name('store');
+
+        Route::put('/{notificationRule}', 'update')
+            ->middleware('permission:notifications.edit')
+            ->name('update');
+    });
+
+    Route::controller(NotificationRuleRecipientController::class)
+    ->prefix('notification-rules/{notificationRule}/recipients')
+    ->name('api.notification-rule-recipients.')
+    ->group(function () {
+        Route::get('/', 'index')
+            ->middleware('permission:notifications.view')
+            ->name('index');
+
+        Route::post('/', 'store')
+            ->middleware('permission:notifications.create')
+            ->name('store');
+    });
+
+Route::put(
+    '/notification-rule-recipients/{recipient}',
+    [NotificationRuleRecipientController::class, 'update']
+)
+    ->middleware('permission:notifications.edit')
+    ->name('api.notification-rule-recipients.update');
+
+    Route::controller(NotificationRuleChannelController::class)
+    ->prefix('notification-rules/{notificationRule}/channels')
+    ->name('api.notification-rule-channels.')
+    ->group(function () {
+        Route::get('/', 'index')
+            ->middleware('permission:notifications.view')
+            ->name('index');
+
+        Route::post('/', 'store')
+            ->middleware('permission:notifications.create')
+            ->name('store');
+    });
+
+Route::put(
+    '/notification-rule-channels/{channel}',
+    [NotificationRuleChannelController::class, 'update']
+)
+    ->middleware('permission:notifications.edit')
+    ->name('api.notification-rule-channels.update');
 
     /*
     |----------------------------------------------------------------------
