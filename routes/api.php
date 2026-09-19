@@ -36,6 +36,8 @@ use App\Modules\Settings\Workflow\Http\Controllers\WorkflowActionController;
 use App\Modules\Settings\Notifications\Http\Controllers\NotificationRuleController;
 use App\Modules\Settings\Notifications\Http\Controllers\NotificationRuleRecipientController;
 use App\Modules\Settings\Notifications\Http\Controllers\NotificationRuleChannelController;
+use App\Modules\Dashboard\Http\Controllers\DashboardController;
+use App\Modules\Dashboard\Http\Controllers\WidgetController;
 
 
 /*
@@ -437,7 +439,21 @@ Route::put(
         Route::put('/', 'updateVat')->name('vat.update');
     });
 
+    Route::controller(DashboardController::class)
+    ->prefix('dashboard')
+    ->name('api.dashboard.')
+    ->group(function () {
+        Route::get('/', 'index')->name('index');
+    });
 });
+
+
+Route::controller(WidgetController::class)
+    ->prefix('dashboard/widgets')
+    ->name('api.dashboard.widgets.')
+    ->group(function () {
+        Route::post('/', 'show')->name('show');
+    });
 
 
 /*
