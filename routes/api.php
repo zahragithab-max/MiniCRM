@@ -38,6 +38,8 @@ use App\Modules\Settings\Notifications\Http\Controllers\NotificationRuleRecipien
 use App\Modules\Settings\Notifications\Http\Controllers\NotificationRuleChannelController;
 use App\Modules\Dashboard\Http\Controllers\DashboardController;
 use App\Modules\Dashboard\Http\Controllers\WidgetController;
+use App\Modules\Settings\Company\Http\Controllers\CompanySettingController;
+use App\Modules\Settings\Currency\Http\Controllers\CurrencySettingController;
 
 
 /*
@@ -445,6 +447,29 @@ Route::put(
     ->group(function () {
         Route::get('/', 'index')->name('index');
     });
+
+    Route::controller(CompanySettingController::class)
+    ->prefix('settings/company')
+    ->name('api.settings.company.')
+    ->group(function () {
+        Route::get('/', 'show')->name('show');
+
+        Route::put('/', 'update')->name('update');
+
+        Route::post('/logo', 'uploadLogo')->name('logo.upload');
+
+        Route::delete('/logo', 'deleteLogo')->name('logo.delete');
+    });
+
+    Route::controller(CurrencySettingController::class)
+    ->prefix('settings/currency')
+    ->name('api.settings.currency.')
+    ->group(function () {
+        Route::get('/', 'show')->name('show');
+        Route::put('/', 'update')->name('update');
+        Route::post('/convert', 'convert')->name('convert');
+    });
+
 });
 
 
