@@ -9,6 +9,7 @@ use App\Modules\Invoices\Services\InvoiceService;
 use App\Support\Helpers\JalaliHelper;
 use Illuminate\Http\JsonResponse;
 use Barryvdh\DomPDF\Facade\Pdf;
+use App\Modules\Invoices\Http\Requests\ChangeInvoiceCurrencyRequest;
 
 class InvoiceController extends Controller
 {
@@ -91,6 +92,32 @@ class InvoiceController extends Controller
             'items.product',
         ]);
 
+        return $this->success(
+            $this->formatDates($invoice)
+        );
+    }
+
+
+    public function changeCurrency(
+        ChangeInvoiceCurrencyRequest $request,
+        int $id
+    ): JsonResponse {
+        /** @var Invoice $invoice */
+        $invoice = Invoice::findOrFail($id);
+    
+        $invoice = $this->invoiceService->changeCurrency(
+            $invoice,
+            $request->validated('currency')
+        );
+    
+        $invoice->load([
+            'deal',
+            'account',
+            'contact',
+            'quote',
+            'items.product',
+        ]);
+    
         return $this->success(
             $this->formatDates($invoice)
         );

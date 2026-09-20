@@ -3,19 +3,33 @@
 namespace App\Modules\Products\Services;
 
 use App\Modules\Products\Models\Product;
+use App\Modules\Settings\Currency\Services\CurrencyService;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Http\UploadedFile;
 
 class ProductService
 {
+    public function __construct(
+        private CurrencyService $currencyService
+    ) {
+    }
+
     public function getAll(int $perPage = 15): LengthAwarePaginator
     {
-        return Product::latest()->paginate($perPage);
+        $products = Product::latest()->paginate($perPage);
+
+        $products->getCollection()->transform(
+            fn (Product $product) => $this->addCurrencyData($product)
+        );
+
+        return $products;
     }
 
     public function findById(int $id): Product
     {
-        return Product::findOrFail($id);
+        return $this->addCurrencyData(
+            Product::findOrFail($id)
+        );
     }
 
     public function create(
@@ -46,5 +60,25 @@ class ProductService
     public function delete(Product $product): void
     {
         $product->delete();
+    }
+
+    private function addCurrencyData(Product $product): Product
+    {
+        $setting = $this->currencyService->get();
+
+        $product->setAttribute(
+            'currency',
+            $setting->currency
+        );
+
+        $product->setAttribute(
+            'converted_price',
+            $this->currencyService->convertFromToman(
+                (float) $product->price,
+                $setting->currency
+            )
+        );
+
+        return $product;
     }
 }

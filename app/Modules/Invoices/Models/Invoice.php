@@ -27,6 +27,8 @@ class Invoice extends Model
         'subtotal',
         'vat',
         'grand_total',
+        'currency',
+        'usd_rate_snapshot',
     ];
 
     protected $casts = [
@@ -37,6 +39,7 @@ class Invoice extends Model
         'subtotal' => 'decimal:2',
         'vat' => 'decimal:2',
         'grand_total' => 'decimal:2',
+        'usd_rate_snapshot' => 'decimal:4',
     ];
 
     public function deal(): BelongsTo

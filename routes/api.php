@@ -498,6 +498,7 @@ Route::prefix('invoices')->name('api.invoices.')->group(function () {
         Route::get('/{id}', 'show')->name('show');
         Route::post('/{id}/issue', 'issue')->name('issue');
         Route::get('/{id}/pdf', 'pdf')->name('pdf');
+        Route::put('/{id}/currency', 'changeCurrency')->name('change-currency');
     });
 
     Route::controller(InvoiceItemController::class)->prefix('{invoiceId}/items')->name('items.')->group(function () {
